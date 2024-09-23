@@ -1,8 +1,13 @@
 # search
 A C-script to search for files by name in the CLI
 
-The format should be 
-``` > search [<folder/to/search/in>] <file/to/search/for> ```
+The format should be
+
+``` 
+>
+> search [<folder/to/search/in>] <file/to/search/for> 
+>
+```
 
 To elaborate further on this... it is my first small C-Project. 
 I wanted to write something quite simple, but still challenging for me.
