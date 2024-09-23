@@ -1,0 +1,9 @@
+// it should be possible to just write the file you search for to search in the current directory
+// also you should be able to search for paths like     C-Projects/searchFile      or         C-Projects/searchFile/
+
+  if (argc != 2) {
+    printf("Usage: search <file name>");
+    return 1; 
+  }
+   argv[1] ==> the directory to search in. argv[2] the directory/ file to search for 
+  searchFile(argv[1], argv[2]);
