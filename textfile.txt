@@ -1,5 +1,11 @@
 // it should be possible to just write the file you search for to search in the current directory
-// also you should be able to search for paths like     C-Projects/searchFile      or         C-Projects/searchFile/
+// also you should be able to search for paths like     C-Projects/search      or         C-Projects/search/
+
+1. check if path is file
+2. IF is path -> iteratte through the linked list 
+3. IF NOT is path just search for the file/folder
+4. IF is folder add "/" at the end
+
 
   if (argc != 2) {
     printf("Usage: search <file name>");

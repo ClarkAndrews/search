@@ -18,4 +18,10 @@ I wanted to write something quite simple, but still challenging for me.
 2. output multiple paths if there are multiple files/folders with the same name
 3. if the "file" searched for is a folder put a "/" at the end of the path string
 4. search for paths e.g. "search/main.c" -> this is quite useless but good practice lol
-5. search for files in a specific directory if there are args. if not search in root -> same as 4.
+5. search for files in a specific directory if there are 2 args. if not search in root -> same as 4.
+  -> first needs to be possible to search in root lol
+
+## problems occured 
+
+- when returning the path from recursion, multiple files with the same name are NOT found 
+  -> to fix this I will add a 3rd parameter of type char * -> this one is then used to store the result and the function can go on as it should
