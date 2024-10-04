@@ -12,7 +12,7 @@ typedef struct pathNode {
 
 
 int checkFile(char *dirName, char *fileName);
-char *searchFile(char *dirName, char *fileName);
+void searchFile(char *dirName, char *fileName, char *result);
 //path related
 void findPath(pathNode *root);
 void addPath(pathNode **root, char *path);
@@ -22,66 +22,45 @@ void printList(struct pathNode *head);
 void searchPath(pathNode *root);
 
 int main(int argc, char *argv[]) {
-  char *result;
-  result = strdup("Applications/packettracer");
-  pathNode *path = getPaths(result);      // FUNKTIONIERT
-  if (path != NULL) {
-      searchPath(path);                       // fixen
-  }
-  
-  
+  //the result variable is passed to safe the result in it
+  char result[1024];
+  char *pathToFind;
+  pathToFind= strdup("Applications/packettracer");
   // make it possible to search in "/"
-  searchFile("/home", "LICENSE");
+  searchFile("/home", "LICENSE", result);
+//  printf("das Ergebnis: %s\n", result);
   return 0;
 }
 
-// actual main function
-int checkFile(char *dirName, char *fileName) {
-  pathNode *pathRef = getPaths(fileName);
-  
-  if (pathRef != NULL) {
-    return 1;
-  }else {
-    searchFile(dirName, fileName);
-    return 0;
-  }  
-}
-
-char *searchFile(char *dirName, char *fileName) {
+void searchFile(char *dirName, char *fileName, char *result) {
   DIR * dirp; 
   struct dirent *entp;
   struct stat attr;
-  char path[1024], *result;
+  char path[1024];
+  
   dirp = opendir(dirName);
-  entp = readdir(dirp);
   while((entp = readdir(dirp))) {
     if(strcmp(entp->d_name, ".") && strcmp(entp->d_name, "..")) {
       // generate path string -> make this absolute 
       strcpy(path, dirName);
       strcat(path, "/");
       strcat(path, entp->d_name);
-      // exclude . git folder
-      if(strcmp(entp->d_name, ".git")){ //REMOVE** FOR DEBUGGING searchPath
-        if (strcmp(entp->d_name, fileName) == 0) {
-          result = malloc(strlen(path) + 1);
-          strcpy(result,path);
-          printf("das Ergebnis: %s\n", result);
-          closedir(dirp); 
-          return result; 
-        };
-        // if entry is a directory, recurse it 
-        stat(path, &attr);
-        if(S_ISDIR(attr.st_mode)){
-          // result needs to be returned in recursion, otherwise it wont be stacked 'upwards'
-          result = searchFile(path, fileName);
-          if (result != NULL)
-            return result;
-        }; //REMOVE** FOR DEBUGGING searchPath
+      // if file is the one searched for -> copy string to result AND end recursion there 
+      if (strcmp(entp->d_name, fileName) == 0) {
+        strcpy(result, path);
+        printf("%s\n", result);
+        closedir(dirp);    
+        return;
       };
-    };
-  };
+  
+      // stat NEEDS to be checked -> if e.g. permission is denied attr.st_mode won't have a value
+      if(stat(path, &attr) != -1 && S_ISDIR(attr.st_mode)){
+        // if file is directory recurse it    
+        searchFile(path, fileName, result);
+      }
+    }
+  }
   closedir(dirp);
-  return NULL;
 }
 
 // not working properly
@@ -92,7 +71,7 @@ void searchPath(pathNode *root) {
 
   while(curr != NULL) {
     free(foundPath);
-    foundPath = searchFile(currPath, curr->dir);
+    ///foundPath = searchFile(currPath, curr->dir);
     // kein string returned? => was passiert wenn kein passender Path gefunden wurde? 
     if(foundPath == NULL) {
       printf("STOOOp");
