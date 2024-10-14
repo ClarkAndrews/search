@@ -1,3 +1,4 @@
+#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -12,32 +13,38 @@ typedef struct pathNode {
 
 
 int checkFile(char *dirName, char *fileName);
-void searchFile(char *dirName, char *fileName, char *result);
+int searchFile(char *dirName, char *fileName, char *result, int recursionCount);
 //path related
 void findPath(pathNode *root);
 void addPath(pathNode **root, char *path);
 void freePaths(pathNode *root);
 pathNode *getPaths(char *fileName);
 void printList(struct pathNode *head);
-void searchPath(pathNode *root);
+void searchPath(char *dirName, pathNode *root);
 
 int main(int argc, char *argv[]) {
   //the result variable is passed to safe the result in it
   char result[1024];
   char *pathToFind;
-  pathToFind= strdup("Applications/packettracer");
+  pathToFind= strdup("Applications/packettracer/pg");
+  pathNode *root = getPaths(pathToFind);
+  searchPath("/home", root);
+
+  
   // make it possible to search in "/"
-  searchFile("/home", "LICENSE", result);
-//  printf("das Ergebnis: %s\n", result);
+  // searchFile("/home", "Applications", result);
+  //  printf("das Ergebnis: %s\n", result);
+  freePaths(root);
   return 0;
 }
 
-void searchFile(char *dirName, char *fileName, char *result) {
+int searchFile(char *dirName, char *fileName, char *result, int recursionCount) {
   DIR * dirp; 
   struct dirent *entp;
   struct stat attr;
   char path[1024];
-  
+  int found = 0;
+
   dirp = opendir(dirName);
   while((entp = readdir(dirp))) {
     if(strcmp(entp->d_name, ".") && strcmp(entp->d_name, "..")) {
@@ -50,42 +57,39 @@ void searchFile(char *dirName, char *fileName, char *result) {
         strcpy(result, path);
         printf("%s\n", result);
         closedir(dirp);    
-        return;
+        return 1;
       };
   
       // stat NEEDS to be checked -> if e.g. permission is denied attr.st_mode won't have a value
       if(stat(path, &attr) != -1 && S_ISDIR(attr.st_mode)){
         // if file is directory recurse it    
-        searchFile(path, fileName, result);
+        found = searchFile(path, fileName, result, recursionCount + 1);
       }
     }
   }
+  if (recursionCount == 0 && !found ) {
+    printf("'%s' wasn't found in '%s'\n", fileName, dirName);
+  }
+
   closedir(dirp);
 }
 
 // not working properly
-void searchPath(pathNode *root) {
-  char *currPath = strdup("/home"); // is passed later on
-  char *foundPath = NULL;
+void searchPath(char *dirName, pathNode *root) {
+  char result[1024];
+  char *currPath = strdup(dirName);
   pathNode *curr = root; 
+  // int pathFound; //maybe need to add a check if a path was found or not  
 
   while(curr != NULL) {
-    free(foundPath);
-    ///foundPath = searchFile(currPath, curr->dir);
-    // kein string returned? => was passiert wenn kein passender Path gefunden wurde? 
-    if(foundPath == NULL) {
-      printf("STOOOp");
-      break;
-    } else{
-      free(currPath);
-      currPath = strdup(foundPath);
-    }
-    free(currPath);  
-    currPath = strdup(foundPath);
+    
+    //currPath= strdup(result);
+    searchFile(currPath, curr->dir, result, 0);
+    free(currPath);
+    currPath = strdup(result);
     curr = curr->next;
   }
   free(currPath);
-  free(foundPath);
 }
 
 // If fileName is path, dir's are put in LL 
