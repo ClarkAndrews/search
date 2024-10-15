@@ -26,13 +26,14 @@ int main(int argc, char *argv[]) {
   //the result variable is passed to safe the result in it
   char result[1024];
   char *pathToFind;
-  pathToFind= strdup("Applications/packettracer/pg");
+  pathToFind= strdup("Applications/packettracer/kg");
   pathNode *root = getPaths(pathToFind);
-  searchPath("/home", root);
+  
+  //searchPath("/home", root);
 
   
   // make it possible to search in "/"
-  // searchFile("/home", "Applications", result);
+   searchFile("/", "textfile.txt", result, 0);
   //  printf("das Ergebnis: %s\n", result);
   freePaths(root);
   return 0;
@@ -46,32 +47,48 @@ int searchFile(char *dirName, char *fileName, char *result, int recursionCount) 
   int found = 0;
 
   dirp = opendir(dirName);
+  if (dirp == NULL && recursionCount == 0) {
+    printf("Folder %s couldn't be opened\n",dirName);
+    exit(1);
+  } else if(dirp == NULL) {
+    return 0;
+  }
   while((entp = readdir(dirp))) {
     if(strcmp(entp->d_name, ".") && strcmp(entp->d_name, "..")) {
       // generate path string -> make this absolute 
       strcpy(path, dirName);
-      strcat(path, "/");
+      // don't add "/" if path is root-dir
+      if (strcmp(dirName, "/")) { 
+        strcat(path, "/");
+      }
       strcat(path, entp->d_name);
       // if file is the one searched for -> copy string to result AND end recursion there 
       if (strcmp(entp->d_name, fileName) == 0) {
         strcpy(result, path);
         printf("%s\n", result);
-        closedir(dirp);    
-        return 1;
+        closedir(dirp);
+        found = 1;  
+        return found;
       };
   
-      // stat NEEDS to be checked -> if e.g. permission is denied attr.st_mode won't have a value
-      if(stat(path, &attr) != -1 && S_ISDIR(attr.st_mode)){
-        // if file is directory recurse it    
-        found = searchFile(path, fileName, result, recursionCount + 1);
+      // lstat NEEDS to be checked -> if e.g. permission is denied attr.st_mode won't have a value
+      if(lstat(path, &attr) != -1 && S_ISDIR(attr.st_mode)){
+        // if file is directory recurse it
+        // found only needs to be reassigned if there was no file found yet
+        if(!found) {
+          found = searchFile(path, fileName, result, recursionCount + 1);
+        }else{
+          searchFile(path, fileName, result, recursionCount + 1);
+        }
       }
     }
   }
-  if (recursionCount == 0 && !found ) {
+  if (recursionCount == 0 && !found) {
     printf("'%s' wasn't found in '%s'\n", fileName, dirName);
   }
 
   closedir(dirp);
+  return found;
 }
 
 // not working properly
