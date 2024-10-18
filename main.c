@@ -23,19 +23,25 @@ void printList(struct pathNode *head);
 void searchPath(char *dirName, pathNode *root);
 
 int main(int argc, char *argv[]) {
-  //the result variable is passed to safe the result in it
   char result[1024];
   char *pathToFind;
   pathToFind= strdup("Applications/packettracer/kg");
+  if (argc < 2 || argc > 3 ) {
+    printf("format: search [<path/to/search/in>] <file/to/search/for>\n");
+    return 1;
+  }
+  pathToFind = strdup(argv[argc-1]);
   pathNode *root = getPaths(pathToFind);
-  
-  //searchPath("/home", root);
-
-  
-  // make it possible to search in "/"
-   searchFile("/", "textfile.txt", result, 0);
-  //  printf("das Ergebnis: %s\n", result);
-  freePaths(root);
+  if (argc == 2 && root){
+    searchPath("/", root);
+    freePaths(root);
+  } else if(argc == 3 && root) {
+    searchPath(argv[1], root);
+  } else if(argc == 2 && !root) {
+    searchFile("/", argv[argc-1], result, 0);
+  } else  if(argc == 3 && !root) {
+    searchFile(argv[1], argv[2], result, 0);
+  }
   return 0;
 }
 
