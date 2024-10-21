@@ -1,4 +1,3 @@
-#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -12,14 +11,10 @@ typedef struct pathNode {
 } pathNode;
 
 
-int checkFile(char *dirName, char *fileName);
-int searchFile(char *dirName, char *fileName, char *result, int recursionCount);
-//path related
-void findPath(pathNode *root);
+int searchFile(char *dirName, char *fileName, char *result, int recursionCount, int isAim);
 void addPath(pathNode **root, char *path);
 void freePaths(pathNode *root);
 pathNode *getPaths(char *fileName);
-void printList(struct pathNode *head);
 void searchPath(char *dirName, pathNode *root);
 
 int main(int argc, char *argv[]) {
@@ -38,14 +33,14 @@ int main(int argc, char *argv[]) {
   } else if(argc == 3 && root) {
     searchPath(argv[1], root);
   } else if(argc == 2 && !root) {
-    searchFile("/", argv[argc-1], result, 0);
+    searchFile("/", argv[argc-1], result, 0, 1);
   } else  if(argc == 3 && !root) {
-    searchFile(argv[1], argv[2], result, 0);
+    searchFile(argv[1], argv[2], result, 0, 1);
   }
   return 0;
 }
 
-int searchFile(char *dirName, char *fileName, char *result, int recursionCount) {
+int searchFile(char *dirName, char *fileName, char *result, int recursionCount, int isAim) {
   DIR * dirp; 
   struct dirent *entp;
   struct stat attr;
@@ -71,7 +66,9 @@ int searchFile(char *dirName, char *fileName, char *result, int recursionCount) 
       // if file is the one searched for -> copy string to result AND end recursion there 
       if (strcmp(entp->d_name, fileName) == 0) {
         strcpy(result, path);
-        printf("%s\n", result);
+        if(isAim) {
+          printf("%s\n", result);
+        }
         closedir(dirp);
         found = 1;  
         return found;
@@ -82,9 +79,9 @@ int searchFile(char *dirName, char *fileName, char *result, int recursionCount) 
         // if file is directory recurse it
         // found only needs to be reassigned if there was no file found yet
         if(!found) {
-          found = searchFile(path, fileName, result, recursionCount + 1);
+          found = searchFile(path, fileName, result, recursionCount + 1, isAim);
         }else{
-          searchFile(path, fileName, result, recursionCount + 1);
+          searchFile(path, fileName, result, recursionCount + 1, isAim);
         }
       }
     }
@@ -97,17 +94,21 @@ int searchFile(char *dirName, char *fileName, char *result, int recursionCount) 
   return found;
 }
 
-// not working properly
+// problem with multiple paths
+// e.g. if build/Debug exists several times or specifically the 'build' folder exists several times result returns only ONE path for ONE of the build-folders
+// something to be corrected after refactoring the code
 void searchPath(char *dirName, pathNode *root) {
   char result[1024];
   char *currPath = strdup(dirName);
-  pathNode *curr = root; 
-  // int pathFound; //maybe need to add a check if a path was found or not  
+  pathNode *curr = root;  
+  int isAim = 0;
 
-  while(curr != NULL) {
-    
-    //currPath= strdup(result);
-    searchFile(currPath, curr->dir, result, 0);
+  while(curr != NULL) {    
+    if(curr->next == NULL) {
+      isAim = 1; 
+    }
+  
+    searchFile(currPath, curr->dir, result, 0, isAim);
     free(currPath);
     currPath = strdup(result);
     curr = curr->next;
@@ -139,10 +140,13 @@ void freePaths(pathNode *root) {
   pathNode *current = root, *nextNode;  
   while(current != NULL) {
     nextNode = current->next;
+    free(current->dir);
     free(current);
     current = nextNode;
   }
 }
+
+
 
 // get LL of Path Dir's -> ready  
 pathNode *getPaths(char *fileName) {
@@ -161,16 +165,3 @@ pathNode *getPaths(char *fileName) {
 
   return root;
 }
-
-// print the LL
-void printList(struct pathNode *head)
-{
-    struct pathNode *temp = head;
-    while(temp != NULL){
-      printf("%s->\n", temp->dir);
-      temp = temp->next;
-    }
-}
-
-
-

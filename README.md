@@ -23,8 +23,15 @@ I wanted to write something quite simple, but still challenging for me.
 
 ## problems occured 
 
+- searchPath only prints 1 path and also doesn't allow searching for multiple path with the same folder-names 
+- ALSO searchPath doesn't find the second folder if the first folder exists multiple times in some cases
+---> maybe I a
+
+## problems resolved
 - when returning the path from recursion, multiple files with the same name are NOT found 
   -> to fix this I will add a 3rd parameter of type char * -> this one is then used to store the result and the function can go on as it should
 - the 'attr' variable of type 'struct stat' caused segmentation err, can happen if permission on a file/folder is denied 
   -> I should start adding checks more frequently :|
+
+
 

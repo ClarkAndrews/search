@@ -2,10 +2,8 @@
 // also you should be able to search for paths like     C-Projects/search      or         C-Projects/search/
 
 searching for Paths doesnt work properly
+-> isLast or source variable
 
-  if (argc != 2) {
-    printf("Usage: search <file name>");
-    return 1; 
-  }
-   argv[1] ==> the directory to search in. argv[2] the directory/ file to search for 
-  searchFile(argv[1], argv[2]);
+if functional make code "clean"
+-> split searchFile logic
+-> struct for parameters (look up the convention for that)
